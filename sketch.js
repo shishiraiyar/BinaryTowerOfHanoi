@@ -1,43 +1,37 @@
-// import { Triangle } from "./Triangle";
-
 function setup() {
   angleMode(DEGREES);
+  canvasHeight = windowHeight
+  canvasWidth = windowWidth
   createCanvas(600, 400);
-  fill("#ffeeff")
   strokeWeight(1)
-  frameRate(60)
+  frameRate(1) ///Drop to see it solve
   rectMode(CENTER)
 
-  a = new Tower(5, createVector(100,200))
-  // a.push(4)
-  // a.push(3)
-  // a.push(2)
-  // a.push(1)
-
-  a.initialise(4)
-
-  b = new Tower(5, createVector(250,200))
-
-  c = new Tower(5, createVector(400,200))
-
-  // Tower.move(a,c)
-  // Tower.move(a,b)
-  // Tower.move(c,b)
-
+  numDiscs = 10;
+  a = new Tower(numDiscs, createVector(100,200))
+  a.initialise(numDiscs)
+  b = new Tower(numDiscs, createVector(250,200))
+  c = new Tower(numDiscs, createVector(400,200))
+  towers = [a,b,c]
   selected = null
-  moveCount  = 1
-  binString = "00000000"
-
+  moveCount  = 0
+  binString = ""
+  solve = 0
 }
   
 function draw() {
   background(220)
 
+  binString = getBinary(moveCount)
+
   textSize(32);
   fill(0, 102, 153);
   text(binString, 400, 50);
-  
-   
+  textSize(16);
+  fill("#000000");
+  text("Made with ❤️ by Shishira Iyar", 370, 385);
+
+  nextMove()
   
   a.show()
   b.show()
@@ -45,27 +39,26 @@ function draw() {
   
 }
 
-function counter(n){
+function getBinary(n){
     binaryStr = n.toString(2);
 
-    while(binaryStr.length < 8) {
+    while(binaryStr.length < numDiscs) {
       binaryStr = "0" + binaryStr;
   }
   return binaryStr
 
 }
 
-
 function mouseClicked(){
   var clicked = null
   console.log(selected)
-  if (mouseX>50 &&mouseX<150 && mouseY<220 && mouseY>(200 - 10 - (a.top+1)*a.discHeight))
+  if (mouseX>50 &&mouseX<150 && mouseY<230 && mouseY>(200 - 10 - (a.top+1)*a.discHeight))
     clicked = a
 
-  if (mouseX>200 &&mouseX<300 && mouseY<220 && mouseY>(200 - 10 - (b.top+1)*b.discHeight))
+  if (mouseX>200 &&mouseX<300 && mouseY<230 && mouseY>(200 - 10 - (b.top+1)*b.discHeight))
     clicked = b
 
-  if (mouseX>350 &&mouseX<450 && mouseY<220 && mouseY>(200 - 10 - (c.top+1)*c.discHeight))
+  if (mouseX>350 &&mouseX<450 && mouseY<230 && mouseY>(200 - 10 - (c.top+1)*c.discHeight))
     clicked = c
 
   if (clicked==null){
@@ -86,8 +79,7 @@ function mouseClicked(){
   let retval = Tower.move(selected, clicked);
   
   if(retval == 1){ //Move successful
-    binString = counter(moveCount++)
-    
+    binString = getBinary(moveCount++)
     selected = null
     return;
   }
@@ -116,15 +108,16 @@ function mouseClicked(){
 class Tower{
   constructor(discCount, position){
     this.DISCCOUNT = discCount
+    this.MINWIDTH = 10
     this.MAXWIDTH = 50
-    this.MAXHEIGHT = 100
+    this.MAXHEIGHT = 80
     this.discHeight = this.MAXHEIGHT/this.DISCCOUNT;
-
-
     this.position = position
-   
-    this.discs =[]
+
+    //STACK
+    this.discs = []
     this.top = -1;
+    //STACK
   }
 
   push(n){
@@ -148,18 +141,17 @@ class Tower{
       let height = this.discHeight
       let width = disc* this.MAXWIDTH/this.DISCCOUNT
       
-      rect(this.position.x, this.position.y - height/2 - (i*height), width , height)
+      rect(this.position.x, this.position.y - height/2 - (i*height), this.MINWIDTH + width , height)
     }
   }
 
-  static move(A, B){
-    console.log(A,B)
+  static move(A, B){//Returns 1 for a legal move
     if(A.top == -1)
       return 0;
     
     if(B.top == -1){
       B.push(A.pop())
-      return 1
+      return 1;  
     }
 
     if(A.discs[A.top] < B.discs[B.top]){
@@ -178,3 +170,15 @@ class Tower{
   }
 }
 
+function nextMove(){
+  if (moveCount < (1<<numDiscs)){
+    console.log(moveCount)
+    //console.log((moveCount&(moveCount-1))%3, ((moveCount|(moveCount-1)) + 1)%3 )
+    Tower.move(towers[(moveCount&(moveCount-1))%3], towers[((moveCount|(moveCount-1))+1)%3])
+    if (moveCount != (1<<numDiscs) - 1) //Issue bcs there are 2^n states to be displayed. This fixes it.
+      moveCount++
+  }
+
+}
+
+function displayStuff(){}
