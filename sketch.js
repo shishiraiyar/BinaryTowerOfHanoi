@@ -4,7 +4,7 @@ function setup() {
   canvasWidth = windowWidth
   createCanvas(600, 400);
   strokeWeight(1)
-  frameRate(1) ///Drop to see it solve
+  frameRate(10) ///Drop to see it solve
   rectMode(CENTER)
 
   numDiscs = 10;
@@ -12,11 +12,21 @@ function setup() {
   a.initialise(numDiscs)
   b = new Tower(numDiscs, createVector(250,200))
   c = new Tower(numDiscs, createVector(400,200))
-  towers = [a,b,c]
+  if (numDiscs%2 == 0)
+    towers = [a,c,b]
+  else  
+    towers = [a,b,c]
   selected = null
   moveCount  = 0
-  binString = ""
   solve = 0
+
+  solveButton = createButton('Solve')
+  solveButton.position(430,330)
+  solveButton.mouseClicked(()=> solve=1)
+
+  resetButton = createButton('Reset')
+  resetButton.position(500, 330)
+  resetButton.mouseClicked(()=> resetTowers())
 }
   
 function draw() {
@@ -31,7 +41,8 @@ function draw() {
   fill("#000000");
   text("Made with ❤️ by Shishira Iyar", 370, 385);
 
-  nextMove()
+  if (solve)
+    nextMove()
   
   a.show()
   b.show()
@@ -50,6 +61,9 @@ function getBinary(n){
 }
 
 function mouseClicked(){
+  if (solve)
+    return
+  
   var clicked = null
   console.log(selected)
   if (mouseX>50 &&mouseX<150 && mouseY<230 && mouseY>(200 - 10 - (a.top+1)*a.discHeight))
@@ -182,3 +196,15 @@ function nextMove(){
 }
 
 function displayStuff(){}
+
+function resetTowers(){
+  moveCount = 0
+  solve = 0
+  selected = null
+  for (tow of towers){
+    tow.discs = []
+    tow.top = -1
+  }
+  a.initialise(numDiscs)
+  
+}
